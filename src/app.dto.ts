@@ -4,12 +4,7 @@ export class ApiResponse<T = any> {
   error: any | null;
   data: T | null;
 
-  constructor(opts: {
-    success: boolean;
-    message: string;
-    error?: any;
-    data?: T;
-  }) {
+  constructor(opts: { success: boolean; message: string; error?: any; data?: T }) {
     this.success = opts.success;
     this.message = opts.message;
     this.error = opts.error ?? null;

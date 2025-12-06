@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ProducerService } from './kafka/producer.service';
 import { RedisService } from './redis/redis.service';
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  HttpException,
-} from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiResponse } from './app.dto';
 
@@ -37,8 +32,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     console.log('exception', exception);
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : 500;
+    const status = exception instanceof HttpException ? exception.getStatus() : 500;
 
     const message = exception.message || 'Unknown error';
 
@@ -47,9 +41,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: exception.message,
       name: exception.name,
       stack: exception.stack,
-      ...(exception.response && typeof exception.response === 'object'
-        ? exception.response
-        : {}),
+      ...(exception.response && typeof exception.response === 'object' ? exception.response : {}),
     };
 
     response.status(status).json(

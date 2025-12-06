@@ -1,29 +1,66 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { Request, Response } from 'express';
+import { ApiResponse } from 'src/app.dto';
+import {
+  loginSchema,
+  parseBody,
+  registerSchema,
+} from './validation/auth.schemas';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  async login(@Body() body: any, @Res({ passthrough: true }) res: Response) {
-    // Минимально: берём email из тела запроса
-    const email: string = body?.email;
-    const userId = body?.userId || email || 'anon';
-    const { accessToken, refreshToken } = await this.authService.signTokens(userId, email || 'user@example.com');
-    this.authService.setRefreshCookie(res, refreshToken);
-    // По желанию можно также установить access-token в куку
-    return { accessToken };
+  @Post('register')
+  async register(@Body() body: unknown) {
+    const { email, password, name } = parseBody(registerSchema, body);
+    const user = await this.authService.register(email, password, name);
+    return new ApiResponse({
+      success: true,
+      message: 'User registered successfully',
+      data: user,
+    });
   }
 
-  @UseGuards(JwtRefreshGuard)
+  @Post('login')
+  async login(
+    @Body() body: unknown,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { email, password } = parseBody(loginSchema, body);
+    const tokens = await this.authService.login(email, password);
+    this.authService.setRefreshCookie(res, tokens.refreshToken);
+    return new ApiResponse({
+      success: true,
+      message: 'User logged in successfully',
+      data: tokens,
+    });
+  }
+
+  // @UseGuards(JwtRefreshGuard)
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const user = (req as any).user as { userId: string | number; email: string };
-    const { accessToken, refreshToken } = await this.authService.signTokens(user.userId, user.email);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshTokenCookie = (req as any).cookies['refresh_token'];
+    if (!refreshTokenCookie) {
+      throw new HttpException('Refresh token not found', 401);
+    }
+    const { accessToken, refreshToken } =
+      await this.authService.refreshToken(refreshTokenCookie);
     this.authService.setRefreshCookie(res, refreshToken);
     return { accessToken };
   }

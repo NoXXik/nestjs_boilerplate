@@ -37,7 +37,7 @@ export class UserController {
         data: res,
       });
     } catch (error) {
-        throw error;
+      throw error;
     }
   }
   @Delete('/:id')

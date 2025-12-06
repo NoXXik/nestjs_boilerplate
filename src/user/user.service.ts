@@ -1,6 +1,6 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateUserDto, UserDbDto } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -34,7 +34,9 @@ export class UserService {
 
   async update(id: number, data: UpdateUserDto): Promise<any> {
     try {
-      const user_db = await (this.prisma as any).user.findUnique({ where: { id } });
+      const user_db = await (this.prisma as any).user.findUnique({
+        where: { id },
+      });
       if (!user_db) {
         throw new HttpException('User not found', 404);
       }
@@ -53,11 +55,29 @@ export class UserService {
       throw new Error(error);
     }
   }
-  async findByEmail(email: string): Promise<any | null> {
+  async findByEmail(email: string): Promise<UserDbDto | null> {
     try {
-      return await (this.prisma as any).user.findUnique({ where: { email } });
+      return (await (this.prisma as any).user.findUnique({
+        where: { email },
+      })) as UserDbDto | null;
     } catch (error) {
       console.error('Failed to find user by email in service:', error);
+      throw new Error(error);
+    }
+  }
+
+  async findByRefreshTokenHash(
+    refreshTokenHash: string,
+  ): Promise<UserDbDto | null> {
+    try {
+      return await (this.prisma as any).user.findFirst({
+        where: { refreshTokenHash },
+      });
+    } catch (error) {
+      console.error(
+        'Failed to find user by refresh token hash in service:',
+        error,
+      );
       throw new Error(error);
     }
   }

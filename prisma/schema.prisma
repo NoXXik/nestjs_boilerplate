@@ -11,7 +11,8 @@ model User {
   email            String   @unique
   passwordHash     String
   name             String?
-  role             Role     @default(USER)
+  roleId           String?
+  role             Role?    @relation(fields: [roleId], references: [id])
   refreshTokenHash String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -19,7 +20,51 @@ model User {
   @@index([email])
 }
 
-enum Role {
-  USER
-  ADMIN
+model Module {
+  id    String @id @default(cuid())
+  code  String @unique  // 'orders', 'analytics'
+  name  String
+  tabs  Tab[]
+  accesses Access[]
+}
+
+model Tab {
+  id        String  @id @default(cuid())
+  moduleId  String
+  code      String  // 'list', 'details'
+  name      String
+
+  module    Module  @relation(fields: [moduleId], references: [id])
+  accesses  Access[]
+}
+
+model Action {
+  id    String @id @default(cuid())
+  code  String @unique // 'view', 'edit', 'delete'
+  name  String
+  accesses Access[]
+}
+
+model Role {
+  id      String  @id @default(cuid())
+  code    String  @unique
+  name    String
+  users   User[]
+  accesses Access[]
+}
+
+model Access {
+  id        String  @id @default(cuid())
+  moduleId  String
+  tabId     String
+  actionId  String
+  roleId    String
+
+  module    Module @relation(fields: [moduleId], references: [id])
+  tab       Tab    @relation(fields: [tabId], references: [id])
+  action    Action @relation(fields: [actionId], references: [id])
+  role      Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([moduleId, tabId, actionId, roleId])
+  @@index([roleId])
 }

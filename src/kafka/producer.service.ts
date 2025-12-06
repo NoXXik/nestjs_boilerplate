@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  OnApplicationShutdown,
-  OnModuleInit,
-} from '@nestjs/common';
+import { Injectable, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { Kafka, Producer, ProducerRecord } from 'kafkajs';
 
 @Injectable()

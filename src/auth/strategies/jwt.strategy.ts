@@ -17,12 +17,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([extractToken]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_ACCESS_SECRET || 'access secret',
+      secretOrKey: process.env.JWT_ACCESS_SECRET || 'access_secret',
     });
   }
 
   async validate(payload: any) {
-    // payload: { sub, email, iat, exp }
-    return { userId: payload.sub, email: payload.email };
+    // payload: { sub, email, roleId?, roleCode?, iat, exp }
+    return {
+      userId: payload.sub,
+      email: payload.email,
+      roleId: payload.roleId,
+      roleCode: payload.roleCode,
+    };
   }
 }

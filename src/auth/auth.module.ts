@@ -7,10 +7,13 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { RefreshTokenStrategy } from './strategies/refresh.strategy';
 import { AttachUserMiddleware } from './middleware/attach-user.middleware';
+import { PrismaModule } from 'src/prisma/prisma.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    PrismaModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -18,11 +21,13 @@ import { AttachUserMiddleware } from './middleware/attach-user.middleware';
         secret: config.get<string>('JWT_ACCESS_SECRET') || 'access_secret',
         // expiresIn может быть строкой вида '15m' – Nest/JWT это поддерживает
         signOptions: {
-          expiresIn: (config.get<string>('JWT_ACCESS_EXPIRES_IN') || '15m') as any,
+          expiresIn: (config.get<string>('JWT_ACCESS_EXPIRES_IN') ||
+            '15m') as any,
         },
       }),
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   controllers: [AuthController],
   providers: [

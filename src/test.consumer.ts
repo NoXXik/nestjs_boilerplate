@@ -11,11 +11,7 @@ export class TestConsumer implements OnModuleInit {
       { topics: ['test'] },
       {
         eachMessage: async ({ topic, message, partition }) => {
-          console.log(
-            topic.toString(),
-            message.value.toString(),
-            partition.toString(),
-          );
+          console.log(topic.toString(), message.value.toString(), partition.toString());
         },
       },
     );
